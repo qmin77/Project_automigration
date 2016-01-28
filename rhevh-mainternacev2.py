@@ -18,15 +18,16 @@ def _getServerListInput():
     migraTfile = raw_input(">")
     with open(migraTfile,"r") as f:
        migraTServerList = f.read().splitlines()
-    return mainTServerList, migraTServerList
+    simulTVM = raw_input("How many VMs would you like to migrate at the same time : ")
+    return mainTServerList, migraTServerList, simulTVM
 
 if __name__ == '__main__':
 
-   mainTServerList, migraTServerList = _getServerListInput()
+   mainTServerList, migraTServerList, simultaneousVM  = _getServerListInput()
    vms_ids = []
    args_map = {}
    hmb=getHost_getVM()
-   hmb.do_balance(vms_ids,mainTServerList,migraTServerList, args_map)
+   hmb.do_balance(vms_ids,mainTServerList,migraTServerList, simultaneousVM args_map)
    #print "host is ", host.name
    #print "vm is ", vm.name
    #  migrateVm(vm,host)
