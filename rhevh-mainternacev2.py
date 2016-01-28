@@ -27,7 +27,7 @@ if __name__ == '__main__':
    vms_ids = []
    args_map = {}
    hmb=getHost_getVM()
-   hmb.do_balance(vms_ids,mainTServerList,migraTServerList, simultaneousVM args_map)
+   hmb.do_balance(vms_ids,mainTServerList,migraTServerList, simultaneousVM, args_map)
    #print "host is ", host.name
    #print "vm is ", vm.name
    #  migrateVm(vm,host)
