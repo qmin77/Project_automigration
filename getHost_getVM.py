@@ -11,12 +11,21 @@ class getHost_getVM(object):
     #the user with options
     properties_validation = 'minimum_host_memoryMB=[0-9]*;safe_selection=True|False'
     TO_BYTES = 1024 * 1024
-    MINIMUM_MEMORY_DEFAULT = 500
+    MINIMUM_MEMORY_DEFAULT = 50
     free_memory_cache = {}
+
+    def inputid(self):
+        print "please, enter rhev administrator's ID and Password"
+        user = raw_input('Enter your username: ')
+        passwd = getpass.getpass()
+        return user, passwd
+        print 'id : ', user
+        print 'Password : ', passwd
 
 
     def _get_connection(self):
         #open a connection to the rest api
+        
         connection = None
         try:
              connection = API(url='https://rhev-m.vsix.info:443',username='admin@internal',password='rhev',ca_file='ca.crt')
@@ -30,12 +39,17 @@ class getHost_getVM(object):
 
 
     def _get_hosts(self, host_ids, connection):
+        print " or ".join(["name=%s" % u for u in host_ids])
         engine_hosts = connection.hosts.list(query=" or ".join(["name=%s" % u for u in host_ids]))
-        print "migrating engine_hosts", engine_hosts
+#        print "engine_hosts", engine_hosts
         return engine_hosts
     
     def _get_vms(self, host_ids, connection):
-#          vmslists = connection.vms.list(" or ".join(["hosts= +%s" % u for u in host_ids]))
+          print " or ".join(["%s" % u for u in host_ids])
+        #  vmslists = connection.vms.list('host='" or ".join(["%s" % u for u in host_ids]))
+        #  vmslists = connection.vms.list('name=13')
+          vmslists = connection.vms.list('hosts=13')
+          #vmslists = connection.vms.list('host=11 or )
 #         print (' or '.join(["'host=%s'" % u for u in host_ids]))
 #         vmslists = connection.vms.list(query='host=rhevh-3.vsix.info')
           print "_get_vms list =", vmslists
@@ -82,19 +96,25 @@ class getHost_getVM(object):
         ####on going editing 
         ####on going editing 
         for vm in vms:
+              print " 98 VM is ", vm 
               if vm.memory > maximum_vm_memory:
                     continue
-              if vm in self._get_migratingfromVMs(conn):
-                    print "migrating VM is ", vm
-                    del selected_vm[vm]
-                    print "after deleting selected_vm : ", selected_vm
+              x=self._get_migratingfromVMs(conn)
+              print "self._get_migratingfromVMs : ",x
+              for mvm in self._get_migratingfromVMs(conn):
+                  print "vm name comparing %s %s" % (mvm.name, vm.name) 
+                  if mvm.name == vm.name:
+                    del selected_vm[vm.name]
+                    #selected_vm.pop("vm",None)
+                    print "currently, VM is migrating from is ", vm.name 
+                    print "after remove self._get_migratingfromVMs : ",x
                     continue 
-              selected_vm.update({vm:vm.memory})
-              sorted_selected_vm = sorted(selected_vm.items(), key=operator.itemgetter(1))
+              selected_vm.update({vm.name:vm.memory})
+              sorted_selected_vm = sorted(selected_vm.items(), key=operator.itemgetter(1),reverse=True)
               dicted_selected_vm = dict(sorted_selected_vm)
               if selected_vm.keys()[0] is None:
                 break
-        print "selected_vm is ", selected_vm.keys()[0]
+        print "109 line, selected_vm is %s" % (selected_vm.keys()[0])
         return selected_vm.keys()[0]
         
 
@@ -109,19 +129,21 @@ class getHost_getVM(object):
             free_memory = self._getFreeMemory(host)
             print "_getOverUtilizedMainTHostList %s %d" % (host.name, free_memory)
             if(free_memory <= 0):
-                 continue
+                continue
             if free_memory < minimum_host_memory:
-                 continue
-            if host in self._get_migratingfromHosts(conn):
-                 del over_utilizedmaintenance_host[host]
-                 print "after deleting host: ", over_utilizedmaintenance_host
-                 continue 
+                continue
+            if host.name in self._get_migratingfromHosts(conn):
+                del over_utilizedmaintenance_host[host]
+                print "currently, the host is VM migrating from is", host.name 
+                continue 
             over_utilizedmaintenance_host.update({host:free_memory})
             sorted_over_utilizedmaintenance_host = sorted(over_utilizedmaintenance_host.items(), key=operator.itemgetter(1))
             dicted_over_utilizedmaintenance_host = dict(sorted_over_utilizedmaintenance_host)
-        print "over_utilizedmaintenance_host is ", dicted_over_utilizedmaintenance_host.keys()[0].name
+        #print "dicted_over_utilizedmaintenance_host", dicted_over_utilizedmaintenance_host
+#        print "over_utilizedmaintenance_host is ", dicted_over_utilizedmaintenance_host.keys()[0].name
 
         return dicted_over_utilizedmaintenance_host.keys()[0]
+        #return sorted_over_utilizedmaintenance_host[0](1)
 
     def migrateVm(self,vm,host):
         """
@@ -143,21 +165,20 @@ class getHost_getVM(object):
             free_memory = self._getFreeMemory(host)
             print "_getUnderUtilizedMigraTHostList %s %d" % (host.name, free_memory)
             if(free_memory <= 0):
-                 continue
+                continue
             if free_memory < minimum_host_memory:
-                 continue 
-            if host in self._get_migratingtoHosts(conn):
-                 del under_utilizedmigrate_host[host]
-	         print "corrently the host is VM migrating to is", host.name 
-                 continue 
+                continue 
+            if host.name in self._get_migratingtoHosts(conn):
+                del under_utilizedmigrate_host[host]
+	        print "currently the host is VM migrating to is", host.name 
+                continue 
             under_utilizedmigrate_host.update({host:free_memory})
-            #sorted_under_utilizedmigrate_host = sorted(under_utilizedmigrate_host.items(), key=operator.itemgetter(1),reverse=True) 
-            sorted_under_utilizedmigrate_host = sorted(under_utilizedmigrate_host.items(), key=operator.itemgetter(1)) 
+            sorted_under_utilizedmigrate_host = sorted(under_utilizedmigrate_host.items(), key=operator.itemgetter(1),reverse=True) 
             dicted_under_utilizedmigrate_host = dict(sorted_under_utilizedmigrate_host)
-        print "under_utilizedmigrate_host is " , dicted_under_utilizedmigrate_host.keys()[0].name
+#        print "under_utilizedmigrate_host is " , dicted_under_utilizedmigrate_host.keys()[0].name
         return dicted_under_utilizedmigrate_host.keys()[0]
 
-    def do_balance(self, vms_ids, mahosts_ids,mihosts_ids, args_map):
+    def do_balance(self, vms_ids, mahosts_ids,mihosts_ids, simultaneousVM, args_map):
         conn = self._get_connection()
         if conn is None:
             return
@@ -167,20 +188,21 @@ class getHost_getVM(object):
         mainTServerList = self._get_hosts(mahosts_ids, conn)
         # need to have rutin that check if vm or host migrating any VM to or from, if so, need to remove the list.  
         while len(self._get_vms(mahosts_ids,conn)) > 0: 
-             while len(self._get_migratingfromVMs(conn)) < 4:
+             while len(self._get_migratingfromVMs(conn)) <  simultaneousVM:
                   print len(self._get_migratingfromVMs(conn))
                   under_utilizedmigrate_host = (self._getUnderUtilizedMigraTHostList(migraTServerList,minimum_host_memory,conn))
                   maximum_vm_memory = self._getMaximumVmMemory(under_utilizedmigrate_host,minimum_host_memory)
-                  print maximum_vm_memory
                   over_utilizedmaintenance_host = (self._getOverUtilizedMainTHostList(mainTServerList,minimum_host_memory,conn))
                   host_vms = conn.vms.list('host=' + over_utilizedmaintenance_host.name)
                   if host_vms is None:
                       continue  
                   selected_vm = self.vm_select(host_vms,maximum_vm_memory,conn)
-                  if selected_vm is None:
+                  kselected_vm= conn.vms.list('name=' + selected_vm)
+                  if kselected_vm is None:
                       continue 
-                  print "vm is ", selected_vm.name
+                  print "vm is %s, %s " % (kselected_vm,kselected_vm[0].name)
                   print "under_utilizedmigrate_host is ", under_utilizedmigrate_host.name
-                  self.migrateVm(selected_vm,under_utilizedmigrate_host)
-                  time.sleep(10)
+                  self.migrateVm(kselected_vm[0].name,under_utilizedmigrate_host)
+                  time.sleep(1)
+             time.sleep(1)
         conn.disconnect()
