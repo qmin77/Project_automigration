@@ -1,5 +1,13 @@
-from ovirtsdk.xml import params
+from time import sleep
+import logging
+import ovirtsdk.api
 from ovirtsdk.api import API
+from ovirtsdk.xml import params
+from ovirtsdk.infrastructure import errors
+from ovirtsdk.infrastructure import contextmanager
+from functools import wraps
+logging.basicConfig(filename='messages.log',level=logging.DEBUG)
+LOGGER = logging.getLogger(__name__)
 import sys
 import time 
 import operator 
@@ -21,7 +29,6 @@ class getHost_getVM(object):
         return user, passwd
         print 'id : ', user
         print 'Password : ', passwd
-
 
     def _get_connection(self):
         #open a connection to the rest api
@@ -81,7 +88,7 @@ class getHost_getVM(object):
     def _getMaximumVmMemory(self, host, minimum_host_memory):
         maximum_vm_memory = 0
         available_memory = self._getFreeMemory(host) - minimum_host_memory
-        available_memory = max(available_memory, host.get_max_scheduling_memory())
+        available_memory = min(available_memory, host.get_max_scheduling_memory())
         print "available_memory is %s, host.get_max_scheduling_memory is %s" % (available_memory,host.get_max_scheduling_memory()) 
         if available_memory > maximum_vm_memory:
             maximum_vm_memory = available_memory
@@ -106,7 +113,7 @@ class getHost_getVM(object):
               print "Line 107 selected vm{}: " , selected_vm 
               sorted_selected_vm = sorted(selected_vm,key=selected_vm.__getitem__,reverse=True)
               if sorted_selected_vm[0] is None:
-                 sorted_selected_vm.get(0,None)
+                 #sorted_selected_vm.get(0,None)
                  break
         print "113 line, sorted_selected_vm is" , sorted_selected_vm
         return sorted_selected_vm[0]
@@ -148,7 +155,7 @@ class getHost_getVM(object):
         * host - host where the vm should be migrated
         """
         vm.migrate(params.Action(host=host))
-    #    vm.waitForState(vm, states.vm.up, timeout=240)
+       # vm.waitForState(vm, states.vm.migrating, timeout=240)
     #   LOGGER.info("Migrated VM '%s' to host '%s'" % (vm.get_name(), host.get_name()))
 
 
@@ -188,13 +195,13 @@ class getHost_getVM(object):
                   over_utilizedmaintenance_host = (self._getOverUtilizedMainTHostList(mainTServerList,minimum_host_memory,conn))
                   host_vms = conn.vms.list(query ='hosts.status=up' and 'host=' + over_utilizedmaintenance_host.name)
                   print "host_vms is", host_vms 
-                  if host_vms is None:
+                  if not host_vms:
                       continue  
                   selected_vm = self.vm_select(host_vms,maximum_vm_memory,conn)
-                  if selected_vm is None:
+                  if not selected_vm:
                       continue  
                   kselected_vm= conn.vms.list('name=' + selected_vm)
-                  if kselected_vm is None:
+                  if not kselected_vm:
                       continue 
                   print "vm is %s, %s " % (kselected_vm[0].id,kselected_vm[0].name)
                   print "under_utilizedmigrate_host is ", under_utilizedmigrate_host.name
