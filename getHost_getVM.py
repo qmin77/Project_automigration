@@ -98,14 +98,16 @@ class getHost_getVM(object):
               x=self._get_migratingfromVMs(conn)
               y=self._get_migratingtoVMs(conn)
               print "(self._get_migratingfromVMs : %s, self._get_migratingtoVMs : %s)" % (x,y) 
-              for mvm in self._get_migratingfromVMs(conn):
-                  print "vm name comparing %s %s" % (mvm.name, vm.name) 
-                  if mvm.name == vm.name:
-                    #del selected_vm[vm.name]
-                    print "currently, VM is migrating from is ", vm.id
-                    #selected_vm.pop("vm",None)
-                    print "after remove self._get_migratingfromVMs : ",x
-                    continue 
+              #for mvm in self._get_migratingfromVMs(conn):
+              #    print "vm name comparing %s %s" % (mvm.name, vm.name) 
+              #    if mvm.name == vm.name:
+              #      #del selected_vm[vm.name]
+              #      print "currently, VM is migrating from is ", vm.id
+              #      #selected_vm.pop("vm",None)
+              #      print "after remove self._get_migratingfromVMs : ",x
+              #      continue 
+              if vm.status.state == states.vm.migrate:
+                 continue 
               selected_vm.update({vm.name:vm.memory})
               print "Line 107 selected vm{}: " , selected_vm 
               #sorted_selected_vm = sorted(selected_vm.items(), key=operator.itemgetter(1),reverse=True)
@@ -155,7 +157,7 @@ class getHost_getVM(object):
         * host - host where the vm should be migrated
         """
         vm.migrate(params.Action(host=host))
-    #   waitForState(vm, states.vm.up, timeout=240)
+        vm.waitForState(vm, states.vm.up, timeout=240)
     #   LOGGER.info("Migrated VM '%s' to host '%s'" % (vm.get_name(), host.get_name()))
 
 
