@@ -106,8 +106,9 @@ class getHost_getVM(object):
               #      #selected_vm.pop("vm",None)
               #      print "after remove self._get_migratingfromVMs : ",x
               #      continue 
-              if vm.status.state == states.vm.migrate:
-                 continue 
+              if vm.status.state == "migrating": 
+                  print "vm.status : " , vm.status.state
+                  continue 
               selected_vm.update({vm.name:vm.memory})
               print "Line 107 selected vm{}: " , selected_vm 
               #sorted_selected_vm = sorted(selected_vm.items(), key=operator.itemgetter(1),reverse=True)
@@ -117,7 +118,7 @@ class getHost_getVM(object):
               if sorted_selected_vm[0] is None:
                 break
         print "113 line, dicted_selected_vm is" , (sorted_selected_vm)
-        print "114 line, dected_selected_vm is %s" % (sorted_selected_vm[0])
+        #print "114 line, dected_selected_vm is %s" % (sorted_selected_vm[0])
         #return dicted_selected_vm.keys()[0]
         return sorted_selected_vm[0]
         
@@ -157,7 +158,7 @@ class getHost_getVM(object):
         * host - host where the vm should be migrated
         """
         vm.migrate(params.Action(host=host))
-        vm.waitForState(vm, states.vm.up, timeout=240)
+    #    vm.waitForState(vm, states.vm.up, timeout=240)
     #   LOGGER.info("Migrated VM '%s' to host '%s'" % (vm.get_name(), host.get_name()))
 
 
