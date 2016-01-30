@@ -45,15 +45,11 @@ class getHost_getVM(object):
         return engine_hosts
     
     def _get_vms(self, host_ids, connection):
-          print " or ".join(["%s" % u for u in host_ids])
-        #  vmslists = connection.vms.list('host='" or ".join(["%s" % u for u in host_ids]))
-        #  vmslists = connection.vms.list('name=13')
-          vmslists = connection.vms.list('hosts=13')
-          #vmslists = connection.vms.list('host=11 or )
-#         print (' or '.join(["'host=%s'" % u for u in host_ids]))
-#         vmslists = connection.vms.list(query='host=rhevh-3.vsix.info')
-          print "_get_vms list =", vmslists
-          return vmslists 
+ #          vmslists = connection.vms.list(query=" or ".join(["host=%s" % u for u in host_ids]))
+           vmslists = connection.vms.list('host=rhevh-1.vsix.info or rhevh-2.vsix.info')
+           print "vmslists : ", vmslists
+           print "_get_vms list =", vmslists
+           return vmslists 
 
 
     def _get_migratingfromVMs(self,conn):
@@ -92,30 +88,36 @@ class getHost_getVM(object):
         return maximum_vm_memory
 
     def vm_select(self, vms,maximum_vm_memory,conn):
+        sorted_selected_vm = {} 
+        dicted_selected_vm = {} 
         selected_vm = {}
-        ####on going editing 
-        ####on going editing 
         for vm in vms:
               print " 98 VM is ", vm 
               if vm.memory > maximum_vm_memory:
                     continue
               x=self._get_migratingfromVMs(conn)
-              print "self._get_migratingfromVMs : ",x
+              y=self._get_migratingtoVMs(conn)
+              print "(self._get_migratingfromVMs : %s, self._get_migratingtoVMs : %s)" % (x,y) 
               for mvm in self._get_migratingfromVMs(conn):
                   print "vm name comparing %s %s" % (mvm.name, vm.name) 
                   if mvm.name == vm.name:
-                    del selected_vm[vm.name]
+                    #del selected_vm[vm.name]
+                    print "currently, VM is migrating from is ", vm.id
                     #selected_vm.pop("vm",None)
-                    print "currently, VM is migrating from is ", vm.name 
                     print "after remove self._get_migratingfromVMs : ",x
                     continue 
               selected_vm.update({vm.name:vm.memory})
-              sorted_selected_vm = sorted(selected_vm.items(), key=operator.itemgetter(1),reverse=True)
-              dicted_selected_vm = dict(sorted_selected_vm)
-              if selected_vm.keys()[0] is None:
+              print "Line 107 selected vm{}: " , selected_vm 
+              #sorted_selected_vm = sorted(selected_vm.items(), key=operator.itemgetter(1),reverse=True)
+              sorted_selected_vm = sorted(selected_vm,key=selected_vm.__getitem__,reverse=True)
+              #dicted_selected_vm = dict(sorted_selected_vm)
+              #if selected_vm.keys()[0] is None:
+              if sorted_selected_vm[0] is None:
                 break
-        print "109 line, selected_vm is %s" % (selected_vm.keys()[0])
-        return selected_vm.keys()[0]
+        print "113 line, dicted_selected_vm is" , (sorted_selected_vm)
+        print "114 line, dected_selected_vm is %s" % (sorted_selected_vm[0])
+        #return dicted_selected_vm.keys()[0]
+        return sorted_selected_vm[0]
         
 
 
@@ -200,9 +202,9 @@ class getHost_getVM(object):
                   kselected_vm= conn.vms.list('name=' + selected_vm)
                   if kselected_vm is None:
                       continue 
-                  print "vm is %s, %s " % (kselected_vm,kselected_vm[0].name)
+                  print "vm is %s, %s " % (kselected_vm[0].id,kselected_vm[0].name)
                   print "under_utilizedmigrate_host is ", under_utilizedmigrate_host.name
-                  self.migrateVm(kselected_vm[0].name,under_utilizedmigrate_host)
-                  time.sleep(1)
-             time.sleep(1)
+                  self.migrateVm(kselected_vm[0],under_utilizedmigrate_host)
+                  time.sleep(3)
+             time.sleep(3)
         conn.disconnect()
