@@ -52,10 +52,9 @@ class getHost_getVM(object):
         return engine_hosts
     
     def _get_vms(self, host_ids, connection):
-           print "host="" or ".join(["%s" % u for u in host_ids])
+           #print "host="" or ".join(["%s" % u for u in host_ids])
            vmslists = connection.vms.list(query=" or ".join(["host.name=%s" % u for u in host_ids]))
 #           vmslists = connection.vms.list(query='host.name=rhevh-3.vsix.info or  host.name=rhevh-4.vsix.info')
-           print "vmslists : ", vmslists
            print "_get_vms list =", vmslists
            return vmslists 
 
@@ -151,16 +150,27 @@ class getHost_getVM(object):
 #            print "hosts.status.state: ", host.status.state
 
             #if host.name==["%s" % u for u in self._get_migratingfromHosts(conn)]:
-            if host in self._get_migratingfromHosts(conn):
+            #for x in self._get_migratingfromHosts(conn):
+            #    print "154 self._get_migratingfromHosts(conn): ", x              
+            #    print "155 hosts : ", host
+            #if all(x.name == host.name  for x in self._get_migratingfromHosts(conn)):
             #    del over_utilizedmaintenance_host[host]
+            #bb = conn.hosts.list(query='name=host.name and vms.status=migratingfrom')
+########################################editing####################33
+            bb = conn.hosts.list('host='host.name)
+            print "159 migratingfrom : ", bb 
+            if len(conn.hosts.list('name=host.name and vms.status=migratingfrom'))>0:
                 print "currently, the host is VM migrating from is", host.name 
+                continue 
+            vmscount = conn.vms.list(query ='hosts.status=up' and 'host=' + host.name)
+            if vmscount<=0:
                 continue 
             over_utilizedmaintenance_host.update({host:free_memory})
             sorted_over_utilizedmaintenance_host = sorted(over_utilizedmaintenance_host.items(), key=operator.itemgetter(1))
             dicted_over_utilizedmaintenance_host = dict(sorted_over_utilizedmaintenance_host)
         #print "sorted_over_utilizedmaintenance_host", sorted_over_utilizedmaintenance_host
         #print "dicted_over_utilizedmaintenance_host", dicted_over_utilizedmaintenance_host
-        print "over_utilizedmaintenance_host is ", dicted_over_utilizedmaintenance_host.keys()[0].name
+        #print "over_utilizedmaintenance_host is ", dicted_over_utilizedmaintenance_host.keys()[0].name
         return dicted_over_utilizedmaintenance_host.keys()[0]
 
     def migrateVm(self,vm,host):
@@ -190,7 +200,11 @@ class getHost_getVM(object):
                 continue
             if free_memory < minimum_host_memory:
                 continue 
-            if host in self._get_migratingtoHosts(conn):
+            #aa = conn.hosts.list(query='name=host.name and vms.status=migratingto')
+            aa = conn.hosts.list(query='name=host.name')
+            print "199 migratingto :" , aa
+            if len(conn.hosts.list(query='name=host.name and vms.status=migratingto'))>0:
+
             #if host.name==["%s" % u for u in self._get_migratingtoHosts(conn)]:
             
             #    del under_utilizedmigrate_host[host]
