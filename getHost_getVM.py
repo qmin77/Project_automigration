@@ -61,6 +61,8 @@ class getHost_getVM(object):
 
     def _get_migratingfromVMs(self,conn):
 	migratingfromVMs = conn.vms.list(query='status=migratingfrom')
+        #for x in migratingfromVMs:
+        #    print "migrating from vm :" ,x.name
         return migratingfromVMs
     
     def _get_migratingtoVMs(self,conn):
@@ -68,13 +70,18 @@ class getHost_getVM(object):
         return migratingtoVMs
     
     def _get_migratingfromHosts(self,conn):
-	migratingfromHosts = conn.hosts.list(query='status=migratingfrom')
-        print "_get_migratingfromHosts: " , migratingfromHosts
+	migratingfromHosts = conn.hosts.list(query='vms.status=migratingfrom')
+        #print "_get_migratingfromHosts: " , migratingfromHosts
+        for x in migratingfromHosts:
+            print "migrating Hosts from :" ,x.name
+
         return migratingfromHosts
     
     def _get_migratingtoHosts(self,conn):
-	migratingtoHosts = conn.hosts.list(query='status=migratingto')
-        print " _get_migratingtoHosts: ", migratingtoHosts
+	migratingtoHosts = conn.hosts.list(query='vms.status=migratingto')
+        #print " _get_migratingtoHosts: ", migratingtoHosts
+        for x in migratingtoHosts:
+            print "migrating Hosts from :" ,x.name
         return migratingtoHosts
 
     def _getFreeMemory(self, host):
@@ -108,7 +115,10 @@ class getHost_getVM(object):
                     continue
               x=self._get_migratingfromVMs(conn)
               y=self._get_migratingtoVMs(conn)
+              w=self._get_migratingfromHosts(conn)
+              z=self._get_migratingtoHosts(conn)
               print "(self._get_migratingfromVMs : %s, self._get_migratingtoVMs : %s)" % (x,y) 
+              print "(self._get_migratingfromHosts: %s, self._get_migratingtoHosts : %s)" % (w,z) 
               if vm.status.state == "migrating": 
                   print "vm.status : " , vm.status.state
                   continue 
@@ -141,7 +151,8 @@ class getHost_getVM(object):
             if host.status.state != 'up':
                 continue 
 
-            if host.name in self._get_migratingfromHosts(conn):
+            if host.name==["%s" % u for u in self._get_migratingfromHosts(conn)]:
+            #vmslists = connection.vms.list(query=" or ".join(["host=%s" % u for u in host_ids]))
             #    del over_utilizedmaintenance_host[host]
             #    print "currently, the host is VM migrating from is", host.name 
                 continue 
