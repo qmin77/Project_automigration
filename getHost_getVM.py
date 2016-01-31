@@ -61,8 +61,6 @@ class getHost_getVM(object):
 
     def _get_migratingfromVMs(self,conn):
 	migratingfromVMs = conn.vms.list(query='status=migratingfrom')
-        #for x in migratingfromVMs:
-        #    print "migrating from vm :" ,x.name
         return migratingfromVMs
     
     def _get_migratingtoVMs(self,conn):
@@ -81,7 +79,7 @@ class getHost_getVM(object):
 	migratingtoHosts = conn.hosts.list(query='vms.status=migratingto')
         #print " _get_migratingtoHosts: ", migratingtoHosts
         for x in migratingtoHosts:
-            print "migrating Hosts from :" ,x.name
+            print "migrating Hosts to:" ,x.name
         return migratingtoHosts
 
     def _getFreeMemory(self, host):
@@ -97,8 +95,8 @@ class getHost_getVM(object):
     def _getMaximumVmMemory(self, host, minimum_host_memory):
         maximum_vm_memory = 0
         available_memory = self._getFreeMemory(host) - minimum_host_memory
-        #available_memory = min(available_memory, host.get_max_scheduling_memory())
-        available_memory = max(available_memory, host.get_max_scheduling_memory())
+        available_memory = min(available_memory, host.get_max_scheduling_memory())
+        #available_memory = max(available_memory, host.get_max_scheduling_memory())
         if available_memory > maximum_vm_memory:
             maximum_vm_memory = available_memory
         print "available_memory is %s, host.get_max_scheduling_memory is %s" % (available_memory,host.get_max_scheduling_memory()) 
@@ -141,31 +139,28 @@ class getHost_getVM(object):
         for host in mainTServerList:
             if not host:
                 continue
+            if host.status.state != 'up':
+                continue 
             free_memory = self._getFreeMemory(host)
             print "_getOverUtilizedMainTHostList %s %d" % (host.name, free_memory)
             if(free_memory <= 0):
                 continue
             if free_memory < minimum_host_memory:
                 continue
-            print "hosts.status.state: ", host.status.state
-            if host.status.state != 'up':
-                continue 
+#            print "hosts.status.state: ", host.status.state
 
-            if host.name==["%s" % u for u in self._get_migratingfromHosts(conn)]:
-            #vmslists = connection.vms.list(query=" or ".join(["host=%s" % u for u in host_ids]))
+            #if host.name==["%s" % u for u in self._get_migratingfromHosts(conn)]:
+            if host in self._get_migratingfromHosts(conn):
             #    del over_utilizedmaintenance_host[host]
-            #    print "currently, the host is VM migrating from is", host.name 
+                print "currently, the host is VM migrating from is", host.name 
                 continue 
             over_utilizedmaintenance_host.update({host:free_memory})
             sorted_over_utilizedmaintenance_host = sorted(over_utilizedmaintenance_host.items(), key=operator.itemgetter(1))
             dicted_over_utilizedmaintenance_host = dict(sorted_over_utilizedmaintenance_host)
-        print "sorted_over_utilizedmaintenance_host", sorted_over_utilizedmaintenance_host
-        print "dicted_over_utilizedmaintenance_host", dicted_over_utilizedmaintenance_host
+        #print "sorted_over_utilizedmaintenance_host", sorted_over_utilizedmaintenance_host
+        #print "dicted_over_utilizedmaintenance_host", dicted_over_utilizedmaintenance_host
         print "over_utilizedmaintenance_host is ", dicted_over_utilizedmaintenance_host.keys()[0].name
-        #print "over_utilizedmaintenance_host is ", sorted_over_utilizedmaintenance_host[0]
-
         return dicted_over_utilizedmaintenance_host.keys()[0]
-        #return sorted_over_utilizedmaintenance_host[0]
 
     def migrateVm(self,vm,host):
         """
@@ -184,17 +179,21 @@ class getHost_getVM(object):
         for host in migraTServerList:
             if not host:
                 continue
+            if host.status.state != 'up':
+                continue 
+            if host.get_max_scheduling_memory()<=0:
+                continue 
             free_memory = self._getFreeMemory(host)
             print "_getUnderUtilizedMigraTHostList %s %d" % (host.name, free_memory)
             if(free_memory <= 0):
                 continue
             if free_memory < minimum_host_memory:
                 continue 
-            if host.status.state != 'up':
-                continue 
-            if host.name in self._get_migratingtoHosts(conn):
+            if host in self._get_migratingtoHosts(conn):
+            #if host.name==["%s" % u for u in self._get_migratingtoHosts(conn)]:
+            
             #    del under_utilizedmigrate_host[host]
-	    #    print "currently the host is VM migrating to is", host.name 
+	        print "currently the host is VM migrating to is", host.name 
                 continue 
             under_utilizedmigrate_host.update({host:free_memory})
             sorted_under_utilizedmigrate_host = sorted(under_utilizedmigrate_host.items(), key=operator.itemgetter(1),reverse=True) 
@@ -212,7 +211,8 @@ class getHost_getVM(object):
         mainTServerList = self._get_hosts(mahosts_ids, conn)
         while len(self._get_vms(mahosts_ids,conn)) > 0: 
             while len(self._get_migratingfromVMs(conn)) <  simultaneousVM:
-                      print len(self._get_migratingfromVMs(conn))
+                      print "simultaneousVM:", simultaneousVM 
+                      print "currently _get_migratingfromVMs : ", len(self._get_migratingfromVMs(conn))
                       under_utilizedmigrate_host = (self._getUnderUtilizedMigraTHostList(migraTServerList,minimum_host_memory,conn))
                       maximum_vm_memory = self._getMaximumVmMemory(under_utilizedmigrate_host,minimum_host_memory)
                       over_utilizedmaintenance_host = (self._getOverUtilizedMainTHostList(mainTServerList,minimum_host_memory,conn))
