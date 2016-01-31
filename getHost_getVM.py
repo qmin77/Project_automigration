@@ -52,8 +52,9 @@ class getHost_getVM(object):
         return engine_hosts
     
     def _get_vms(self, host_ids, connection):
- #          vmslists = connection.vms.list(query=" or ".join(["host=%s" % u for u in host_ids]))
-           vmslists = connection.vms.list('host=rhevh-3.vsix.info or rhevh-4.vsix.info')
+           print "host="" or ".join(["%s" % u for u in host_ids])
+           vmslists = connection.vms.list(query=" or ".join(["host.name=%s" % u for u in host_ids]))
+#           vmslists = connection.vms.list(query='host.name=rhevh-3.vsix.info or  host.name=rhevh-4.vsix.info')
            print "vmslists : ", vmslists
            print "_get_vms list =", vmslists
            return vmslists 
