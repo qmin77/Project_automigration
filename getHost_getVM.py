@@ -46,7 +46,7 @@ class getHost_getVM(object):
 
 
     def _get_hosts(self, host_ids, connection):
-        print " or ".join(["name=%s" % u for u in host_ids])
+      #  print " or ".join(["name=%s" % u for u in host_ids])
         engine_hosts = connection.hosts.list(query=" or ".join(["name=%s" % u for u in host_ids]))
 #        print "engine_hosts", engine_hosts
         return engine_hosts
@@ -54,6 +54,7 @@ class getHost_getVM(object):
     def _get_vms(self, host_ids, connection):
            #print "host="" or ".join(["%s" % u for u in host_ids])
            vmslists = connection.vms.list(query=" or ".join(["host.name=%s" % u for u in host_ids]))
+           #vmslists = connection.vms.list(query=" or ".join(["host=%s" % u for u in host_ids]))
 #           vmslists = connection.vms.list(query='host.name=rhevh-3.vsix.info or  host.name=rhevh-4.vsix.info')
            print "_get_vms list =", vmslists
            return vmslists 
@@ -107,26 +108,26 @@ class getHost_getVM(object):
         sorted_selected_vm = {} 
         selected_vm = {}
         for vm in vms:
-              print " 98 VM is ", vm 
-              print "%s's vm.memory %s and maximum_vm_memory is %s" % (vm.name, vm.memory, maximum_vm_memory)
+              #print " 98 VM is ", vm 
+              #print "%s's vm.memory %s and maximum_vm_memory is %s" % (vm.name, vm.memory, maximum_vm_memory)
               if vm.memory > maximum_vm_memory:
                     continue
-              x=self._get_migratingfromVMs(conn)
-              y=self._get_migratingtoVMs(conn)
-              w=self._get_migratingfromHosts(conn)
-              z=self._get_migratingtoHosts(conn)
-              print "(self._get_migratingfromVMs : %s, self._get_migratingtoVMs : %s)" % (x,y) 
-              print "(self._get_migratingfromHosts: %s, self._get_migratingtoHosts : %s)" % (w,z) 
+              #x=self._get_migratingfromVMs(conn)
+              #y=self._get_migratingtoVMs(conn)
+              #w=self._get_migratingfromHosts(conn)
+              #z=self._get_migratingtoHosts(conn)
+              ##print "(self._get_migratingfromVMs : %s, self._get_migratingtoVMs : %s)" % (x,y) 
+              #print "(self._get_migratingfromHosts: %s, self._get_migratingtoHosts : %s)" % (w,z) 
               if vm.status.state == "migrating": 
-                  print "vm.status : " , vm.status.state
+                  #print "vm.status : " , vm.status.state
                   continue 
               selected_vm.update({vm.name:vm.memory})
-              print "Line 107 selected vm{}: " , selected_vm 
+              #print "Line 107 selected vm{}: " , selected_vm 
               sorted_selected_vm = sorted(selected_vm,key=selected_vm.__getitem__,reverse=True)
               if sorted_selected_vm[0] is None:
                  #sorted_selected_vm.get(0,None)
                  break
-        print "113 line, sorted_selected_vm is" , sorted_selected_vm
+        #print "113 line, sorted_selected_vm is" , sorted_selected_vm
         return sorted_selected_vm[0]
 
         
@@ -156,10 +157,12 @@ class getHost_getVM(object):
             #if all(x.name == host.name  for x in self._get_migratingfromHosts(conn)):
             #    del over_utilizedmaintenance_host[host]
             #bb = conn.hosts.list(query='name=host.name and vms.status=migratingfrom')
-########################################editing####################33
-            bb = conn.hosts.list('host='host.name)
-            print "159 migratingfrom : ", bb 
-            if len(conn.hosts.list('name=host.name and vms.status=migratingfrom'))>0:
+            #bb = conn.vms.list('host=' + host.name 'and vms.status=migratingfrom')
+            #bb = conn.vms.list('host=' + host.name)
+            #bb = conn.hosts.list(query='vms.status=migratingfrom and name='+host.name)
+
+            #print "159 migratingfrom : ", bb 
+            if len(conn.hosts.list(query='vms.status=migratingfrom and name='+host.name))>0:
                 print "currently, the host is VM migrating from is", host.name 
                 continue 
             vmscount = conn.vms.list(query ='hosts.status=up' and 'host=' + host.name)
@@ -203,13 +206,16 @@ class getHost_getVM(object):
             #aa = conn.hosts.list(query='name=host.name and vms.status=migratingto')
             aa = conn.hosts.list(query='name=host.name')
             print "199 migratingto :" , aa
-            if len(conn.hosts.list(query='name=host.name and vms.status=migratingto'))>0:
-
+            print  len(conn.hosts.list(query='name=host.name and vms.status=migratingto'))
+            #if len(conn.hosts.list(query='name=host.name and vms.status=migratingto'))>0:
+            if len(conn.hosts.list(query='vms.status=migratingto and name='+host.name))>0:
+                    print "currently, the host is VM migrating to is", host.name
+                    continue
             #if host.name==["%s" % u for u in self._get_migratingtoHosts(conn)]:
             
             #    del under_utilizedmigrate_host[host]
-	        print "currently the host is VM migrating to is", host.name 
-                continue 
+	     #   print "currently the host is VM migrating to is", host.name 
+             #   continue 
             under_utilizedmigrate_host.update({host:free_memory})
             sorted_under_utilizedmigrate_host = sorted(under_utilizedmigrate_host.items(), key=operator.itemgetter(1),reverse=True) 
             dicted_under_utilizedmigrate_host = dict(sorted_under_utilizedmigrate_host)
