@@ -164,7 +164,7 @@ class getHost_getVM(object):
             if host.get_max_scheduling_memory()<=0:
                 continue 
             free_memory = self._getFreeMemory(host)
-            print "_getUnderUtilizedMigraTHostList %s %d" % (host.name, free_memory)
+            #print "_getUnderUtilizedMigraTHostList %s %d" % (host.name, free_memory)
             if(free_memory <= 0):
                 continue
             if free_memory < minimum_host_memory:
@@ -200,8 +200,8 @@ class getHost_getVM(object):
                       kselected_vm= conn.vms.list('name=' + selected_vm)
                       if not kselected_vm:
                            continue 
-                      print "vm is %s on %s " % (kselected_vm[0].name,over_utilizedmaintenance_host.name)
-                      print "under_utilizedmigrate_host is ", under_utilizedmigrate_host.name
+                      print "Migrating vm will be %s on %s " % (kselected_vm[0].name,over_utilizedmaintenance_host.name)
+                      print "The VM is migrating to ", under_utilizedmigrate_host.name
                       self.migrateVm(kselected_vm[0],under_utilizedmigrate_host)
                       #time.sleep(1)
 
