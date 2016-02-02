@@ -204,5 +204,5 @@ class getHost_getVM(object):
                       print "The VM is migrating to %s\n" % (under_utilizedmigrate_host.name)
                       self.migrateVm(kselected_vm[0],under_utilizedmigrate_host)
                       #time.sleep(1)
-
         conn.disconnect()
+        print "VM Migration has completed\n"
