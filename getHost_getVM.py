@@ -123,6 +123,12 @@ class getHost_getVM(object):
                 continue
             if host.status.state != 'up':
                 continue 
+            if len(conn.hosts.list(query='vms.status=migratingfrom and name='+host.name))>0:
+                print "Currently, %s is migrating VMs to some hypervisor\nThe script will choose other hypervisor \n" % (host.name)
+                continue 
+            vmscount = conn.vms.list(query ='hosts.status=up' and 'host=' + host.name)
+            if vmscount<=0:
+                continue 
             free_memory = self._getFreeMemory(host)
             #print "_getOverUtilizedMainTHostList %s %d" % (host.name, free_memory)
             if(free_memory <= 0):
@@ -131,12 +137,6 @@ class getHost_getVM(object):
                 continue
 #            print "hosts.status.state: ", host.status.state
 
-            if len(conn.hosts.list(query='vms.status=migratingfrom and name='+host.name))>0:
-                print "currently, the host is migrating VM from is", host.name 
-                continue 
-            vmscount = conn.vms.list(query ='hosts.status=up' and 'host=' + host.name)
-            if vmscount<=0:
-                continue 
             over_utilizedmaintenance_host.update({host:free_memory})
             sorted_over_utilizedmaintenance_host = sorted(over_utilizedmaintenance_host.items(), key=operator.itemgetter(1))
             dicted_over_utilizedmaintenance_host = dict(sorted_over_utilizedmaintenance_host)
@@ -163,15 +163,15 @@ class getHost_getVM(object):
                 continue 
             if host.get_max_scheduling_memory()<=0:
                 continue 
+            if len(conn.hosts.list(query='vms.status=migratingto and name='+host.name))>0:
+                    print "currently, The %s is having VMs from some hypervisor.\nThe script will choose other hypervisor \n" % (host.name)
+                    continue
             free_memory = self._getFreeMemory(host)
             #print "_getUnderUtilizedMigraTHostList %s %d" % (host.name, free_memory)
             if(free_memory <= 0):
                 continue
             if free_memory < minimum_host_memory:
                 continue 
-            if len(conn.hosts.list(query='vms.status=migratingto and name='+host.name))>0:
-                    print "currently, the host is migrating VM to is", host.name
-                    continue
             under_utilizedmigrate_host.update({host:free_memory})
             sorted_under_utilizedmigrate_host = sorted(under_utilizedmigrate_host.items(), key=operator.itemgetter(1),reverse=True) 
             dicted_under_utilizedmigrate_host = dict(sorted_under_utilizedmigrate_host)
@@ -200,8 +200,8 @@ class getHost_getVM(object):
                       kselected_vm= conn.vms.list('name=' + selected_vm)
                       if not kselected_vm:
                            continue 
-                      print "Migrating vm will be %s on %s " % (kselected_vm[0].name,over_utilizedmaintenance_host.name)
-                      print "The VM is migrating to ", under_utilizedmigrate_host.name
+                      print "Migrating vm will be %s on %s\n" % (kselected_vm[0].name,over_utilizedmaintenance_host.name)
+                      print "The VM is migrating to %s\n" % (under_utilizedmigrate_host.name)
                       self.migrateVm(kselected_vm[0],under_utilizedmigrate_host)
                       #time.sleep(1)
 
