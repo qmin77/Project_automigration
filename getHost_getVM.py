@@ -56,6 +56,7 @@ class getHost_getVM(object):
 
     def _get_migratingfromVMs(self,conn):
 	migratingfromVMs = conn.vms.list(query='status=migratingfrom')
+	#print "migrating VMs are",  " and ".join(["%s".name % u for u in migratingfromVMs])
         return migratingfromVMs
     
     def _get_migratingtoVMs(self,conn):
