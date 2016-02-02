@@ -56,7 +56,7 @@ class getHost_getVM(object):
            vmslists = connection.vms.list(query=" or ".join(["host.name=%s" % u for u in host_ids]))
            #vmslists = connection.vms.list(query=" or ".join(["host=%s" % u for u in host_ids]))
 #           vmslists = connection.vms.list(query='host.name=rhevh-3.vsix.info or  host.name=rhevh-4.vsix.info')
-           print "_get_vms list =", vmslists
+           #print "_get_vms list =", vmslists
            return vmslists 
 
 
@@ -231,7 +231,9 @@ class getHost_getVM(object):
         migraTServerList = self._get_hosts(mihosts_ids, conn)
         mainTServerList = self._get_hosts(mahosts_ids, conn)
         while len(self._get_vms(mahosts_ids,conn)) > 0: 
-            while len(self._get_migratingfromVMs(conn)) <  simultaneousVM:
+         #print "236 len(self._get_vms(mahosts_ids,conn))", len(self._get_vms(mahosts_ids,conn))
+            while len(self._get_migratingfromVMs(conn)) <  simultaneousVM and len(self._get_vms(mahosts_ids,conn)) > 0:
+                      print "236 len(self._get_vms(mahosts_ids,conn))", len(self._get_vms(mahosts_ids,conn))
                       print "simultaneousVM:", simultaneousVM 
                       print "currently _get_migratingfromVMs : ", len(self._get_migratingfromVMs(conn))
                       under_utilizedmigrate_host = (self._getUnderUtilizedMigraTHostList(migraTServerList,minimum_host_memory,conn))
