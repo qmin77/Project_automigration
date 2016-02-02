@@ -10,11 +10,11 @@ import os
 def _getServerListInput():
     # Mainternace Moded Server List : mainTServerList
     #  Server List VM will be migrated List : migraTfile
-    print 'Please enter the file name which would like to set mainternance mode'
+    print 'Please enter the file name which you would like to set mainternance mode'
     mainTfile = raw_input(">")
     with open(mainTfile,"r") as f:
        mainTServerList = f.read().splitlines()
-    print 'Please enter the file name which would like to migrate VMs to'
+    print 'Please enter the file name which you would like to migrate VMs to'
     migraTfile = raw_input(">")
     with open(migraTfile,"r") as f:
        migraTServerList = f.read().splitlines()
