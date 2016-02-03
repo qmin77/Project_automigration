@@ -119,6 +119,8 @@ class getHost_getVM(object):
     def _getOverUtilizedMainTHostList(self,mainTServerList,minimum_host_memory,conn):
         over_utilizedmaintenance_host = {}
         under_utilizedmaintenance_host = None
+        sorted_over_utilizedmaintenance_host = {} 
+        dicted_over_utilizedmaintenance_host = {} 
         for host in mainTServerList:
             if not host:
                 continue
@@ -131,18 +133,24 @@ class getHost_getVM(object):
             if vmscount<=0:
                 continue 
             free_memory = self._getFreeMemory(host)
-            #print "_getOverUtilizedMainTHostList %s %d" % (host.name, free_memory)
+            print "_getOverUtilizedMainTHostList %s %d" % (host.name, free_memory)
             if(free_memory <= 0):
                 continue
             if free_memory < minimum_host_memory:
                 continue
-#            print "hosts.status.state: ", host.status.state
+            print "hosts.status.state: ", host.status.state
 
             over_utilizedmaintenance_host.update({host:free_memory})
             sorted_over_utilizedmaintenance_host = sorted(over_utilizedmaintenance_host.items(), key=operator.itemgetter(1))
             dicted_over_utilizedmaintenance_host = dict(sorted_over_utilizedmaintenance_host)
-        return dicted_over_utilizedmaintenance_host.keys()[0]
-
+        try:
+             return dicted_over_utilizedmaintenance_host.keys()[0]
+        except KeyError, e:   
+             print "There is no proper hypervisor for vm migration from mainTServerList. ther script will do another looping\n"
+             return None 
+        except IndexError, e:   
+             print "There is no proper hypervisor for vm migration from mainTServerList. ther script will do another looping\n"
+             return None 
     def migrateVm(self,vm,host):
         """
         Migrate vm.
@@ -157,6 +165,8 @@ class getHost_getVM(object):
 
     def _getUnderUtilizedMigraTHostList(self,migraTServerList,minimum_host_memory,conn):
         under_utilizedmigrate_host = {}
+        sorted_under_utilizedmigrate_host = {} 
+        dicted_under_utilizedmigrate_host = {}
         for host in migraTServerList:
             if not host:
                 continue
@@ -168,7 +178,7 @@ class getHost_getVM(object):
                     print "currently, The %s is having VMs from some hypervisor.\nThe script will choose other hypervisor \n" % (host.name)
                     continue
             free_memory = self._getFreeMemory(host)
-            #print "_getUnderUtilizedMigraTHostList %s %d" % (host.name, free_memory)
+            print "_getUnderUtilizedMigraTHostList %s %d" % (host.name, free_memory)
             if(free_memory <= 0):
                 continue
             if free_memory < minimum_host_memory:
@@ -176,7 +186,15 @@ class getHost_getVM(object):
             under_utilizedmigrate_host.update({host:free_memory})
             sorted_under_utilizedmigrate_host = sorted(under_utilizedmigrate_host.items(), key=operator.itemgetter(1),reverse=True) 
             dicted_under_utilizedmigrate_host = dict(sorted_under_utilizedmigrate_host)
-        return dicted_under_utilizedmigrate_host.keys()[0]
+          #  print dicted_under_utilizedmigrate_host.keys()[0]
+        try: 
+            return dicted_under_utilizedmigrate_host.keys()[0]
+        except KeyError, e:
+            print "There are no proper hypervisor for vm migration from migraTServerList. the script will do another looping\n"
+            return None
+        except IndexError, e:
+            print "There are no proper hypervisor for vm migration from migraTServerList. the script will do another looping\n"
+            return None
 
     def do_balance(self, vms_ids, mahosts_ids,mihosts_ids, simultaneousVM, args_map):
         conn = self._get_connection()
@@ -189,10 +207,16 @@ class getHost_getVM(object):
         while len(self._get_vms(mahosts_ids,conn)) > 0: 
             while len(self._get_migratingfromVMs(conn)) <=  simultaneousVM and len(self._get_vms(mahosts_ids,conn)) > 0:
                       under_utilizedmigrate_host = (self._getUnderUtilizedMigraTHostList(migraTServerList,minimum_host_memory,conn))
-                      maximum_vm_memory = self._getMaximumVmMemory(under_utilizedmigrate_host,minimum_host_memory)
+                      if under_utilizedmigrate_host is not None:
+                         maximum_vm_memory = self._getMaximumVmMemory(under_utilizedmigrate_host,minimum_host_memory)
+                      else:
+                         continue  
                       over_utilizedmaintenance_host = (self._getOverUtilizedMainTHostList(mainTServerList,minimum_host_memory,conn))
-                      host_vms = conn.vms.list(query ='hosts.status=up' and 'host=' + over_utilizedmaintenance_host.name)
-                      #print "host_vms is", host_vms 
+                      if over_utilizedmaintenance_host is not None:
+                          host_vms = conn.vms.list(query ='hosts.status=up' and 'host=' + over_utilizedmaintenance_host.name)
+                      else:
+                          continue                       
+                      print "host_vms is", host_vms 
                       if not host_vms:
                           continue  
                       selected_vm = self.vm_select(host_vms,maximum_vm_memory,conn)

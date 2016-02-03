@@ -1,2 +1,3 @@
-rhevh-3.vsix.info
+rhevh-2.vsix.info
 rhevh-4.vsix.info
+rhevh-1.vsix.info
