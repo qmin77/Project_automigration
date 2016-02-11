@@ -143,6 +143,12 @@ class getHost_getVM(object):
             over_utilizedmaintenance_host.update({host:free_memory})
             sorted_over_utilizedmaintenance_host = sorted(over_utilizedmaintenance_host.items(), key=operator.itemgetter(1))
             dicted_over_utilizedmaintenance_host = dict(sorted_over_utilizedmaintenance_host)
+#               it seems that this parts needs to be modified simliar like below?            
+#                          sorted_selected_vm = sorted(selected_vm,key=selected_vm.__getitem__,reverse=True)
+#             if sorted_selected_vm[0] is None:
+#                break
+#        return sorted_selected_vm[0]
+
         try:
              return dicted_over_utilizedmaintenance_host.keys()[0]
         except KeyError, e:   
@@ -187,6 +193,13 @@ class getHost_getVM(object):
             sorted_under_utilizedmigrate_host = sorted(under_utilizedmigrate_host.items(), key=operator.itemgetter(1),reverse=True) 
             dicted_under_utilizedmigrate_host = dict(sorted_under_utilizedmigrate_host)
           #  print dicted_under_utilizedmigrate_host.keys()[0]
+#               it seems that this parts needs to be modified simliar like below?            
+#                          sorted_selected_vm = sorted(selected_vm,key=selected_vm.__getitem__,reverse=True)
+#             if sorted_selected_vm[0] is None:
+#                break
+#        return sorted_selected_vm[0]
+          
+          
         try: 
             return dicted_under_utilizedmigrate_host.keys()[0]
         except KeyError, e:
