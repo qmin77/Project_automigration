@@ -141,10 +141,12 @@ class getHost_getVM(object):
             print "hosts.status.state: ", host.status.state
 
             over_utilizedmaintenance_host.update({host:free_memory})
-            sorted_over_utilizedmaintenance_host = sorted(over_utilizedmaintenance_host.items(), key=operator.itemgetter(1))
-            dicted_over_utilizedmaintenance_host = dict(sorted_over_utilizedmaintenance_host)
+            sorted_over_utilizedmaintenance_host = sorted(over_utilizedmaintenance_host,key=over_utilizedmaintenance_host.__getitem__)
+           # dicted_over_utilizedmaintenance_host = dict(sorted_over_utilizedmaintenance_host)
+           #   sorted_selected_vm = sorted(selected_vm,key=selected_vm.__getitem__,reverse=True)
+
         try:
-             return dicted_over_utilizedmaintenance_host.keys()[0]
+             return sorted_over_utilizedmaintenance_host[0]
         except KeyError, e:   
              print "There is no proper hypervisor for vm migration from mainTServerList. ther script will do another looping\n"
              return None 
@@ -184,11 +186,12 @@ class getHost_getVM(object):
             if free_memory < minimum_host_memory:
                 continue 
             under_utilizedmigrate_host.update({host:free_memory})
-            sorted_under_utilizedmigrate_host = sorted(under_utilizedmigrate_host.items(), key=operator.itemgetter(1),reverse=True) 
-            dicted_under_utilizedmigrate_host = dict(sorted_under_utilizedmigrate_host)
+            sorted_under_utilizedmigrate_host = sorted(under_utilizedmigrate_host, key=under_utilizedmigrate_host.__getitem__,reverse=True) 
+          #  dicted_under_utilizedmigrate_host = dict(sorted_under_utilizedmigrate_host)
+          #  sorted_selected_vm = sorted(selected_vm,key=selected_vm.__getitem__,reverse=True)
           #  print dicted_under_utilizedmigrate_host.keys()[0]
         try: 
-            return dicted_under_utilizedmigrate_host.keys()[0]
+            return sorted_under_utilizedmigrate_host[0]
         except KeyError, e:
             print "There are no proper hypervisor for vm migration from migraTServerList. the script will do another looping\n"
             return None
