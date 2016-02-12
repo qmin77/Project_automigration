@@ -142,8 +142,6 @@ class getHost_getVM(object):
 
             over_utilizedmaintenance_host.update({host:free_memory})
             sorted_over_utilizedmaintenance_host = sorted(over_utilizedmaintenance_host,key=over_utilizedmaintenance_host.__getitem__)
-           # dicted_over_utilizedmaintenance_host = dict(sorted_over_utilizedmaintenance_host)
-           #   sorted_selected_vm = sorted(selected_vm,key=selected_vm.__getitem__,reverse=True)
 
         try:
              return sorted_over_utilizedmaintenance_host[0]
@@ -153,6 +151,7 @@ class getHost_getVM(object):
         except IndexError, e:   
              print "There is no proper hypervisor for vm migration from mainTServerList. ther script will do another looping\n"
              return None 
+
     def migrateVm(self,vm,host):
         """
         Migrate vm.
@@ -187,9 +186,8 @@ class getHost_getVM(object):
                 continue 
             under_utilizedmigrate_host.update({host:free_memory})
             sorted_under_utilizedmigrate_host = sorted(under_utilizedmigrate_host, key=under_utilizedmigrate_host.__getitem__,reverse=True) 
-          #  dicted_under_utilizedmigrate_host = dict(sorted_under_utilizedmigrate_host)
-          #  sorted_selected_vm = sorted(selected_vm,key=selected_vm.__getitem__,reverse=True)
-          #  print dicted_under_utilizedmigrate_host.keys()[0]
+          
+          
         try: 
             return sorted_under_utilizedmigrate_host[0]
         except KeyError, e:
